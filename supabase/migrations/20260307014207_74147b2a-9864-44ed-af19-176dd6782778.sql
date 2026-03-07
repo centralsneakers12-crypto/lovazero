@@ -1,0 +1,1 @@
+ALTER TABLE public.trial_keys ADD COLUMN is_duplicate BOOLEAN NOT NULL DEFAULT false;

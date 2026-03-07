@@ -1,0 +1,96 @@
+#lovable-badge {
+  display: none !important;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 260 20% 4%;
+    --foreground: 0 0% 95%;
+
+    --card: 260 15% 8%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 260 15% 8%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 270 80% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 260 12% 12%;
+    --secondary-foreground: 0 0% 85%;
+
+    --muted: 260 10% 10%;
+    --muted-foreground: 260 5% 55%;
+
+    --accent: 280 75% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 260 10% 14%;
+    --input: 260 10% 14%;
+    --ring: 270 80% 60%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 260 15% 6%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 270 80% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 12% 12%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 260 10% 14%;
+    --sidebar-ring: 270 80% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-gradient-purple {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(270 80% 60%), hsl(300 80% 70%));
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 60px -10px hsl(270 80% 60% / 0.4);
+  }
+
+  .icon-box {
+    @apply w-14 h-14 rounded-xl flex items-center justify-center;
+    background: linear-gradient(135deg, hsl(270 80% 60% / 0.15), hsl(300 80% 70% / 0.1));
+    border: 1px solid hsl(270 80% 60% / 0.25);
+  }
+
+  .particle {
+    @apply absolute rounded-full;
+    background: radial-gradient(circle, hsl(280 80% 65% / 0.8), transparent);
+    filter: blur(1px);
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+    50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+  }
+}
