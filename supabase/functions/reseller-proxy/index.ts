@@ -5,7 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const API_BASE_URL = 'https://api.leigosacademy.site';
+const API_URL = 'https://mybkregqvkottrzsogmi.supabase.co/functions/v1/reseller-api';
+
+const VALID_ACTIONS = ['create_order', 'check_status', 'get_events', 'list_orders', 'get_balance'];
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -21,45 +23,55 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { endpoint, method, body } = await req.json();
+    const body = await req.json();
+    const { action } = body;
 
-    if (!endpoint || !endpoint.startsWith('/') || endpoint.includes('..')) {
-      return new Response(JSON.stringify({ error: 'Invalid endpoint' }), {
+    if (!action || !VALID_ACTIONS.includes(action)) {
+      return new Response(JSON.stringify({ error: 'Invalid action. Valid actions: ' + VALID_ACTIONS.join(', ') }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method: method || 'GET',
+    // Validate specific action params
+    if (action === 'create_order') {
+      const validCredits = [10, 100, 200, 300, 500, 1000, 2000, 3000, 5000, 10000];
+      if (!body.credits || !validCredits.includes(body.credits)) {
+        return new Response(JSON.stringify({ error: 'Invalid credits amount. Valid: ' + validCredits.join(', ') }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    if (action === 'check_status' || action === 'get_events') {
+      if (!body.order_id || typeof body.order_id !== 'string') {
+        return new Response(JSON.stringify({ error: 'order_id is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    if (action === 'list_orders') {
+      if (body.limit && (typeof body.limit !== 'number' || body.limit < 1 || body.limit > 100)) {
+        return new Response(JSON.stringify({ error: 'limit must be between 1 and 100' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': API_KEY,
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: JSON.stringify(body),
     });
 
     const data = await response.json();
-
-    // Save trial data to database if it's a trial endpoint
-    if (endpoint.includes('/trial') && body) {
-      try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
-        await supabase.from('trial_keys').insert({
-          client_name: body.client_name || '',
-          client_whatsapp: body.client_whatsapp || '',
-          fingerprint: body.fingerprint || null,
-          ip: body.ip || null,
-          generated_key: body.is_duplicate ? null : (data?.key || null),
-          is_duplicate: body.is_duplicate || false,
-        });
-      } catch (dbError) {
-        console.error('Failed to save trial key:', dbError);
-      }
-    }
 
     return new Response(JSON.stringify(data), {
       status: response.status,
@@ -67,7 +79,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Proxy error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
